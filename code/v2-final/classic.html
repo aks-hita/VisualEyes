@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath d=%22M3 20V9l9-5 9 5v11h-6v-6H9v6z%22 fill=%22%231f6f8b%22/%3E%3C/svg%3E" />
+</head>
+<body style="margin:0">
+<title>PlanToTour Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+/>
+<style>
+  /* Layout: a drafting-table tool. Inputs strip on top, the tour as the working sheet, the
+     assistant and the room schedule pinned beside it; one column on phones. */
+  :root {
+    --bg: #eef1f3;
+    --sheet: #ffffff;
+    --ink: #172026;
+    --muted: #5b6770;
+    --line: #d5dce1;
+    --accent: #1f6f8b;
+    --accent-ink: #ffffff;
+    --accent-soft: #dcecf2;
+    --ok: #2e7d4f;
+    --bad: #b3261e;
+    --font-display: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #11171b;
+      --sheet: #182126;
+      --ink: #e4eaee;
+      --muted: #9aa8b1;
+      --line: #2a363d;
+      --accent: #6cb6d1;
+      --accent-ink: #0d1a20;
+      --accent-soft: #1d3540;
+      --ok: #6cc28f;
+      --bad: #f08a80;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #11171b;
+    --sheet: #182126;
+    --ink: #e4eaee;
+    --muted: #9aa8b1;
+    --line: #2a363d;
+    --accent: #6cb6d1;
+    --accent-ink: #0d1a20;
+    --accent-soft: #1d3540;
+    --ok: #6cc28f;
+    --bad: #f08a80;
+    color-scheme: dark;
+  }
+  /* the product's viewer and editor follow the same theme switch */
+  :root[data-theme="dark"] .ptt-viewer,
+  :root[data-theme="dark"] .ptt-editor {
+    color-scheme: dark;
+  }
+  html,
+  body {
+    background: var(--bg);
+    color: var(--ink);
+  }
+  body {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .lv {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding-inline: 16px;
+    padding-block: 16px 32px;
+    display: grid;
+    gap: 14px;
+  }
+  .lv h1,
+  .lv h2 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .lv h1 {
+    font-size: 1.45rem;
+  }
+  .lv h2 {
+    font-size: 1.05rem;
+  }
+  .lv-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .lv-brand {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    min-width: 0;
+  }
+  .lv-brand p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .lv-mark {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 9px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    flex: none;
+  }
+  .lv-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--sheet);
+    font-size: 0.85rem;
+    color: var(--muted);
+    max-width: 100%;
+  }
+  .lv-pill--ok {
+    color: var(--ok);
+    border-color: color-mix(in srgb, var(--ok) 40%, var(--line));
+  }
+  .lv-pill--bad {
+    color: var(--bad);
+  }
+  .lv-bar {
+    width: 64px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--line);
+    overflow: hidden;
+    flex: none;
+  }
+  .lv-bar span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+  .lv-input {
+    background: var(--sheet);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px;
+    display: grid;
+    gap: 12px;
+  }
+  .lv-input__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: stretch;
+  }
+  .lv-input__row--opts {
+    align-items: center;
+  }
+  .lv-field {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+  .lv-field--inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .lv-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .lv-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .lv-chip,
+  .lv-btn,
+  .lv select,
+  .lv input[type="text"],
+  .lv-chat__form input {
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--ink);
+    background: var(--sheet);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 7px 12px;
+  }
+  .lv-chip,
+  .lv-btn {
+    cursor: pointer;
+  }
+  .lv-chip[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+  }
+  .lv-chip--soft {
+    background: var(--accent-soft);
+    border-color: transparent;
+    font-size: 0.82rem;
+    padding: 5px 10px;
+  }
+  .lv-btn--primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+  }
+  .lv button:disabled,
+  .lv select:disabled,
+  .lv input:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .lv :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .lv-drop {
+    flex: 1 1 260px;
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+    align-content: center;
+    padding: 10px 14px;
+    border: 1.5px dashed color-mix(in srgb, var(--accent) 55%, var(--line));
+    border-radius: var(--radius);
+    cursor: pointer;
+    background: color-mix(in srgb, var(--accent-soft) 45%, var(--sheet));
+  }
+  .lv-drop input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+  .lv-drop:focus-within {
+    outline: 2px solid var(--accent);
+  }
+  .lv-drop span {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .lv-drop.is-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .lv-check {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 0.9rem;
+  }
+  .lv-steps {
+    list-style: none;
+    margin: 0 0 0 auto;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    font-size: 0.85rem;
+  }
+  .lv-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+  }
+  .lv-step__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--line);
+  }
+  .lv-step--done .lv-step__dot {
+    background: var(--ok);
+  }
+  .lv-step--running .lv-step__dot {
+    background: var(--accent);
+    animation: lv-pulse 1s infinite alternate;
+  }
+  .lv-step--failed .lv-step__dot {
+    background: var(--bad);
+  }
+  .lv-step--done,
+  .lv-step--running {
+    color: var(--ink);
+  }
+  @keyframes lv-pulse {
+    to {
+      opacity: 0.3;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lv-step--running .lv-step__dot {
+      animation: none;
+    }
+  }
+  .lv-num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.85em;
+  }
+  .lv-error {
+    margin: 0;
+    color: var(--bad);
+    font-size: 0.9rem;
+  }
+  .lv-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 14px;
+    align-items: start;
+  }
+  @media (max-width: 980px) {
+    .lv-main {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .lv-stage {
+    min-width: 0;
+    background: var(--sheet);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px;
+    display: grid;
+    gap: 10px;
+  }
+  .lv-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .lv-tabs [role="tab"] {
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--muted);
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    padding: 6px 10px;
+    cursor: pointer;
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .lv-tabs [role="tab"][aria-selected="true"] {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+  .lv-tabs__meta {
+    margin-left: auto;
+    font-size: 0.82rem;
+    color: var(--muted);
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .lv-count {
+    background: var(--bad);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    padding: 0 6px;
+  }
+  .lv-save {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .lv-muted {
+    color: var(--muted);
+  }
+  .lv-small {
+    font-size: 0.82rem;
+  }
+  .lv-side {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+  }
+  .lv-card {
+    background: var(--sheet);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px;
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+  }
+  .lv-rooms {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+  }
+  .lv-rooms li {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .lv-rooms li:last-child {
+    border-bottom: 0;
+  }
+  .lv-chat__log {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+  .lv-msg {
+    padding: 8px 11px;
+    border-radius: 10px;
+    max-width: 92%;
+    overflow-wrap: anywhere;
+  }
+  .lv-msg p {
+    margin: 0;
+  }
+  .lv-msg ul {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    font-size: 0.85rem;
+  }
+  .lv-msg--user {
+    justify-self: end;
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .lv-msg--assistant {
+    justify-self: start;
+    background: var(--accent-soft);
+  }
+  .lv-msg.is-failed {
+    background: color-mix(in srgb, var(--bad) 14%, var(--sheet));
+  }
+  .lv-chat__form {
+    display: flex;
+    gap: 6px;
+  }
+  .lv-chat__form input {
+    flex: 1;
+    min-width: 0;
+  }
+  .lv-foot p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+    max-width: 75ch;
+  }
+</style>
+<div id="app">
+  <p style="padding: 24px; font-family: system-ui, sans-serif">Loading PlanToTour Live…</p>
+</div>
+<script type="module" src="app.js?v=p18-98326b7d"></script>
+
+</body>
+</html>

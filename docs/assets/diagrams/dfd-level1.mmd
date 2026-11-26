@@ -1,0 +1,17 @@
+flowchart TD
+    User["User"]
+    DXF["DXF File"]
+
+    User -->|"Upload DXF"| P1["P1: Parse DXF (ptt_parser)"]
+    DXF -->|"Binary DXF data"| P1
+    P1 -->|"Plan JSON (walls, rooms)"| D1[("D1: Plan Model")]
+    D1 -->|"Room layout"| P2["P2: Build Shell (ptt_shell)"]
+    P2 -->|"3D shell geometry"| D2[("D2: Scene Graph")]
+    D1 -->|"Room types & dimensions"| P3["P3: Furnish Rooms (ptt_furnish)"]
+    D3[("D3: Furniture Library")] -->|"Models & placement rules"| P3
+    P3 -->|"Furnished layout"| D2
+    D2 -->|"Complete 3D scene"| P4["P4: Render Tour (ptt_render)"]
+    D4[("D4: Material Library")] -->|"PBR materials & textures"| P4
+    P4 -->|"GLB binary"| Viewer["Three.js Viewer"]
+    Viewer -->|"Interactive 3D tour"| User
+    User -->|"Edit furniture & paint"| P3

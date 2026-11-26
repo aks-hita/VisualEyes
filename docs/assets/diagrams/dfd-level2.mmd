@@ -1,0 +1,12 @@
+flowchart TD
+    DXF["DXF File"] -->|"Binary data"| P11["P1.1: Read DXF Entities"]
+    P11 -->|"LINE, ARC, LWPOLYLINE, INSERT"| P12["P1.2: Build Wall Graph"]
+    P12 -->|"NetworkX graph"| P13["P1.3: Detect Room Boundaries"]
+    P13 -->|"Room polygons"| P14["P1.4: Classify Rooms"]
+    P14 -->|"Labeled rooms (Bedroom, Kitchen...)"| PlanJSON["Plan JSON"]
+
+    D5[("Entity Filters")] -->|"Layer names & block patterns"| P11
+    D6[("Geometric Heuristics")] -->|"Min area & aspect ratio"| P14
+
+    P12 -->|"Wall segments"| D7[("Wall Topology")]
+    D7 -->|"Connected components"| P13
