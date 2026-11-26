@@ -44,9 +44,9 @@ make docs
 
 | Member | Roll No. | Role |
 |--------|----------|------|
-| Member A | `102403XXXA` | Input Format Research (DXF) & Testing |
-| Member B | `102403XXXB` | Interior Design & Auto-Furnishing Functions |
-| Member C | `102403XXXC` | 3D Rendering, Tour Engine, Shell Builder & UI |
+| Akshita | `1024030955` | Input Format Research (DXF) & Testing |
+| Samiksha | `1024030952` | Interior Design & Auto-Furnishing Functions |
+| Ishan | `1024030958` | 3D Rendering, Tour Engine, Shell Builder & UI |
 
 ## License
 
