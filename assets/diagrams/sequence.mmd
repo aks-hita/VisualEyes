@@ -1,0 +1,39 @@
+sequenceDiagram
+    actor User
+    participant UI as UI (React + Three.js)
+    participant Worker as Web Worker (worker.js)
+    participant Pyodide as Pyodide (Python WASM)
+    participant Pipeline as Python Pipeline (ptt_*)
+
+    User->>UI: Drop DXF file
+    UI->>Worker: postMessage({cmd: "init"})
+    Worker->>Pyodide: loadPyodide()
+    Pyodide-->>Worker: Python ready
+    Worker->>Pyodide: Load wheels (NumPy, NetworkX, Pydantic...)
+    Pyodide-->>Worker: Packages loaded
+    Worker-->>UI: {progress: "Ready"}
+
+    UI->>Worker: postMessage({cmd: "parse", args: {bytes, filename}})
+    Worker->>Pipeline: ptt_parser.parse_dxf(bytes)
+    Pipeline-->>Worker: Plan JSON (walls, rooms)
+    Worker-->>UI: {result: plan}
+
+    UI->>Worker: postMessage({cmd: "build", args: {plan}})
+    Worker->>Pipeline: ptt_shell.build(plan)
+    Pipeline->>Pipeline: ptt_furnish.furnish(plan)
+    Pipeline->>Pipeline: ptt_render.to_glb(scene)
+    Pipeline-->>Worker: GLB file path
+    Worker->>Worker: Read GLB from Pyodide FS
+    Worker-->>UI: {result: GLB ArrayBuffer}
+
+    UI->>UI: THREE.GLTFLoader.parse(GLB)
+    UI->>UI: Setup scene, lights, shadows
+    UI-->>User: 3D apartment rendered
+
+    User->>UI: Click floor / WASD keys
+    UI->>UI: Walker: collision check, move camera
+    UI-->>User: Updated view
+
+    User->>UI: Click "Tour" mode
+    UI->>UI: Auto-tour: visit rooms sequentially
+    UI-->>User: Animated walkthrough

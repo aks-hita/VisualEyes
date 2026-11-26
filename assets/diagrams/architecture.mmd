@@ -1,0 +1,30 @@
+flowchart TB
+    subgraph Browser["Browser"]
+        subgraph UI["User Interface (Main Thread)"]
+            React["React 19 Components"]
+            ThreeJS["Three.js WebGL Renderer"]
+            Controls["Walker / Tour Engine"]
+        end
+
+        subgraph Worker["Web Worker (Background Thread)"]
+            WJS["worker.js Message Bridge"]
+            subgraph Pyodide["Pyodide (Python in WASM)"]
+                Parser["ptt_parser: DXF to Plan"]
+                Shell["ptt_shell: Plan to 3D Walls"]
+                Furnish["ptt_furnish: Rooms to Furniture"]
+                Render["ptt_render: Scene to GLB"]
+            end
+        end
+    end
+
+    DXF["DXF File"] -->|"File API"| React
+    React -->|"postMessage (parse / build / duplex)"| WJS
+    WJS --> Parser --> Shell --> Furnish --> Render
+    Render -->|"GLB ArrayBuffer (transferable)"| WJS
+    WJS -->|"postMessage (result: GLB)"| React
+    React -->|"GLB data"| ThreeJS
+    ThreeJS --> Controls
+    Controls -->|"Camera updates"| ThreeJS
+
+    User["User"] -->|"Mouse, keyboard, touch"| Controls
+    ThreeJS -->|"Rendered frames"| User

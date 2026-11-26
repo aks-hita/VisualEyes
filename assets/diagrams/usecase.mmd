@@ -1,0 +1,34 @@
+flowchart LR
+    User["User (Buyer / Agent)"]
+    Architect["Architect"]
+
+    subgraph VisualEyes["VisualEyes System"]
+        UC1["Upload DXF Floor Plan"]
+        UC2["View 3D Walkthrough"]
+        UC3["Navigate Rooms"]
+        UC4["Customize Furniture"]
+        UC5["Change Wall Paint"]
+        UC6["Take Snapshot"]
+        UC7["Share Tour"]
+        UC8["Switch Floor (Duplex)"]
+        UC9["Edit Plan (Classic Editor)"]
+        UC10["Load Sample Project"]
+        UC11["Auto Tour Mode"]
+    end
+
+    Architect -->|"Provides DXF"| UC1
+    Architect --> UC9
+    User --> UC1
+    User --> UC2
+    User --> UC3
+    User --> UC4
+    User --> UC5
+    User --> UC6
+    User --> UC7
+    User --> UC8
+    User --> UC10
+    User --> UC11
+
+    UC1 -->|"triggers"| UC2
+    UC2 -->|"includes"| UC3
+    UC11 -->|"extends"| UC2

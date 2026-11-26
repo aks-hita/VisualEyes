@@ -1,0 +1,10 @@
+flowchart LR
+    User["User (Buyer / Agent)"]
+    DXF["DXF File (CAD Software)"]
+    Browser["Browser (WebGL, Web Workers, File API)"]
+
+    User -->|"Uploads floor plan & customizations"| VE["VisualEyes System"]
+    DXF -->|"2D floor plan geometry"| VE
+    VE -->|"Interactive 3D tour & snapshots"| User
+    VE -->|"3D rendering & worker tasks"| Browser
+    Browser -->|"WebGL context & WASM runtime"| VE
